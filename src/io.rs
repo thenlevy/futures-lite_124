@@ -3113,7 +3113,7 @@ mod tests {
     fn non_empty_buffer() {
         spin_on::spin_on(async {
             let mut bytes = "foo".as_bytes();
-            let mut buf = String::from("bar");
+            let mut buf = std::string::String::from("bar");
             bytes.read_line(&mut buf).await.unwrap();
             assert_eq!(&buf, "barfoo");
         });
