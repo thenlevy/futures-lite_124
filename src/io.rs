@@ -1908,19 +1908,23 @@ fn read_line_internal<R: AsyncBufRead + ?Sized>(
 ) -> Poll<Result<usize>> {
     let ret = ready!(read_until_internal(reader, cx, b'\n', bytes, read));
 
-    match String::from_utf8(mem::take(bytes)) {
-        Ok(s) => {
-            debug_assert!(buf.is_empty());
-            debug_assert_eq!(*read, 0);
-            *buf = s;
-            Poll::Ready(ret)
-        }
-        Err(_) => Poll::Ready(ret.and_then(|_| {
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "stream did not contain valid UTF-8",
-            ))
-        })),
+    let utf8_err = || Error::new(ErrorKind::InvalidData, "stream did not contain valid UTF-8");
+
+    if buf.is_empty() {
+        let Ok(s) = String::from_utf8(mem::take(bytes)) else {
+            return Poll::Ready(ret.and_then(|_| Err(utf8_err())));
+        };
+        debug_assert_eq!(*read, 0);
+        *buf = s;
+        Poll::Ready(ret)
+    } else {
+        let Ok(s) = str::from_utf8(bytes) else {
+            bytes.clear();
+            return Poll::Ready(ret.and_then(|_| Err(utf8_err())));
+        };
+        debug_assert_eq!(*read, 0);
+        buf.push_str(s);
+        Poll::Ready(ret)
     }
 }
 
