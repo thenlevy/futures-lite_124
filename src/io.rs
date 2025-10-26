@@ -3104,3 +3104,18 @@ use memchr::memchr;
 fn memchr(needle: u8, haystack: &[u8]) -> Option<usize> {
     haystack.iter().position(|&b| b == needle)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::AsyncBufReadExt;
+
+    #[test]
+    fn non_empty_buffer() {
+        spin_on::spin_on(async {
+            let mut bytes = "foo".as_bytes();
+            let mut buf = String::from("bar");
+            bytes.read_line(&mut buf).await.unwrap();
+            assert_eq!(&buf, "barfoo");
+        });
+    }
+}
