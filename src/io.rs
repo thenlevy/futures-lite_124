@@ -1924,6 +1924,7 @@ fn read_line_internal<R: AsyncBufRead + ?Sized>(
         };
         debug_assert_eq!(*read, 0);
         buf.push_str(s);
+        bytes.clear();
         Poll::Ready(ret)
     }
 }
