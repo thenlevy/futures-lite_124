@@ -1918,7 +1918,7 @@ fn read_line_internal<R: AsyncBufRead + ?Sized>(
         *buf = s;
         Poll::Ready(ret)
     } else {
-        let Ok(s) = str::from_utf8(bytes) else {
+        let Ok(s) = core::str::from_utf8(bytes) else {
             bytes.clear();
             return Poll::Ready(ret.and_then(|_| Err(utf8_err())));
         };
